@@ -18,18 +18,12 @@ locals {
   startup_script = file("${path.module}/scripts/startup-script.sh")
 }
 
-resource "google_project_service" "compute" {
-  project            = local.project_id
-  service            = "compute.googleapis.com"
-  disable_on_destroy = false
-}
-
 resource "google_compute_network" "mongodb" {
   project                 = local.project_id
   name                    = local.network_name
   auto_create_subnetworks = false
 
-  depends_on = [google_project_service.compute]
+  depends_on = [google_project_service.required_apis]
 }
 
 resource "google_compute_subnetwork" "mongodb" {

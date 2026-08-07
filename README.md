@@ -73,15 +73,21 @@ graph TD
 .
 ├── .agents/
 │   └── skills/
-│       └── readme-generator/   # README generation & audit skill
+│       ├── gitignore-generator/ # .gitignore & cloud ignore rules generator
+│       └── readme-generator/    # README generation & audit skill
 ├── terraform/
+│   ├── api.tf                  # Google Cloud APIs enablement
 │   ├── main.tf                 # Core compute, network, disk, and template resources
 │   ├── variables.tf            # GCP project input variable definition
 │   ├── config.tfvars           # Default variables configuration file
+│   ├── config.tfvars.example   # Example variables template file
 │   ├── outputs.tf              # Seed IP, node IPs, and instance name outputs
 │   ├── versions.tf             # Terraform and Google provider version constraints
 │   └── scripts/
 │       └── startup-script.sh   # Automated NVMe tuning, disk mounting & cluster initialization
+├── gcp-config.yaml             # Declarative GCP project & environment configuration
+├── .gcloudignore               # Google Cloud deployment file ignore rules
+├── .gitignore                  # Source control ignore rules
 └── README.md
 ```
 
