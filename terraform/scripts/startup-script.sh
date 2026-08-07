@@ -13,7 +13,10 @@ if [ -z "${SEED_IP}" ]; then
   exit 1
 fi
 
-# 2. Standardize OS Drivers (NVMe & gVNIC)
+# 2. Install filesystem tooling and standardize OS drivers (NVMe & gVNIC)
+apt-get update -y
+apt-get install -y xfsprogs
+
 echo "Configuring NVMe drivers in initramfs..."
 if command -v dracut &> /dev/null; then
   echo 'add_dracutmodules+=" nvme nvme-core "' > /etc/dracut.conf.d/10-nvme.conf
@@ -49,7 +52,7 @@ fi
 # 4. Install MongoDB 7.0
 if ! command -v mongod &> /dev/null; then
   echo "Installing MongoDB 7.0 Community Edition..."
-  apt-get update -y && apt-get install -y gnupg curl
+  apt-get install -y gnupg curl
   curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
   echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" > /etc/apt/sources.list.d/mongodb-org-7.0.list
   apt-get update -y
