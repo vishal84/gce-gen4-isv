@@ -1,0 +1,28 @@
+# ====================================================================
+# .gcloudignore: Files excluded when uploading to Google Cloud Platform
+# ====================================================================
+
+# Ignore Git files and subversion artifacts
+.gcloudignore
+.git
+.gitignore
+.gitattributes
+
+# Ignore Terraform state, provider plugins, and plans
+.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfplan
+
+# Ignore local editor and operating system artifacts
+.DS_Store
+._*
+.idea/
+.vscode/
+
+# Ignore logs and temporary files
+*.log
+crash.log
+*.tmp

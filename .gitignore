@@ -1,5 +1,147 @@
+# ==============================================================================
+# Master .gitignore
+# Stack: HashiCorp Terraform | Google Cloud Platform | General Development & OS
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. HashiCorp Terraform & Infrastructure as Code (IaC)
+# ------------------------------------------------------------------------------
+# Local .terraform directories and downloaded provider plugins
+**/.terraform/*
 .terraform/
+.terraform.lock.hcl.tmp
+
+# Terraform state files and local backups
 *.tfstate
 *.tfstate.*
-crash.log
+*.tfstate.backup
 
+# CLI execution plan binary and cache files
+*.tfplan
+*.tfplan.binary
+
+# Terraform override files (local development overrides)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Local CLI configuration files
+.terraformrc
+terraform.rc
+
+# Crash logs and debug traces
+crash.log
+crash.*.log
+*.log
+
+# Sensitive variable files (protect local secrets and private project configurations)
+*.tfvars
+*.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Explicitly allow sample/template variable files
+!*.example.tfvars
+!*.example.tfvars.json
+!terraform/config.tfvars.example
+
+# ------------------------------------------------------------------------------
+# 2. Google Cloud Platform (GCP), Authentication & Secrets
+# ------------------------------------------------------------------------------
+# Service account private keys and credentials (JSON, P12, PEM)
+*credentials*.json
+*service_account*.json
+*service-account*.json
+*sa-key*.json
+gcp-key*.json
+keyfile.json
+application_default_credentials.json
+
+# Certificates, private keys and token files
+*.pem
+*.key
+*.p12
+*.pfx
+*.pkcs12
+id_rsa
+id_ecdsa
+id_ed25519
+
+# Local environment variable definitions
+.env
+.env.*
+!.env.example
+!.env.gcp.example
+
+# Google Cloud SDK runtime states, caches, and local configurations
+.gcloud/
+.cloudcode/
+credentials.db
+access_tokens.db
+.gcloudignore.bk
+
+# ------------------------------------------------------------------------------
+# 3. Operating System Artifacts
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ------------------------------------------------------------------------------
+# 4. Integrated Development Environments (IDEs) & Editors
+# ------------------------------------------------------------------------------
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains IDEs (IntelliJ, PyCharm, WebStorm, GoLand)
+.idea/
+*.iml
+*.iws
+out/
+
+# Vim & Neovim
+.*.sw[a-p]
+*.swp
+*.swo
+Session.vim
+.netrwhist
+
+# Emacs
+*#
+.#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ------------------------------------------------------------------------------
+# 5. Temporary, Cache & Shell Artifacts
+# ------------------------------------------------------------------------------
+*.tmp
+*.bak
+*.old
+*.history
+.bash_history
+.zsh_history

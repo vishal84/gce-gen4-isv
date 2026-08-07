@@ -1,0 +1,61 @@
+# ==============================================================================
+# Google Cloud Platform (GCP) Configuration Management
+# ==============================================================================
+# Declarative environment configuration for infrastructure & gcloud workflows.
+# Use this file to standardize project attributes, deployment regions, and network parameters.
+
+environment:
+  name: "development" # Options: development, staging, production
+  description: "High-availability multi-zone database cluster environment"
+
+project:
+  id: "mongo-experiments" # Set to your active GCP Project ID
+  region: "us-central1"
+  zones:
+    - "us-central1-a"
+    - "us-central1-b"
+    - "us-central1-c"
+
+services:
+  required_apis:
+    - "compute.googleapis.com"
+    - "iam.googleapis.com"
+    - "cloudresourcemanager.googleapis.com"
+
+networking:
+  network_name: "mongodb-network"
+  subnet_name: "mongodb-subnet"
+  ip_cidr_range: "10.42.0.0/24"
+  allowed_internal_ports:
+    - "27017"
+
+compute:
+  machine_type: "n2-standard-8"
+  image_family: "ubuntu-2204-lts"
+  image_project: "ubuntu-os-cloud"
+  boot_disk:
+    type: "pd-balanced"
+    size_gb: 50
+  data_disk:
+    type: "pd-ssd"
+    size_gb: 500
+    mount_path: "/var/lib/mongodb"
+    filesystem: "xfs"
+
+cluster:
+  replica_set_name: "rs-analytics"
+  node_count: 3
+  seed_node_index: 0
+
+# Helper gcloud CLI commands to initialize this environment configuration:
+# ------------------------------------------------------------------------------
+# 1. Create a dedicated gcloud named configuration:
+#    gcloud config configurations create gce-cluster
+#
+# 2. Activate and set project and compute defaults:
+#    gcloud config set project mongo-experiments
+#    gcloud config set compute/region us-central1
+#    gcloud config set compute/zone us-central1-a
+#
+# 3. Verify active configuration:
+#    gcloud config list

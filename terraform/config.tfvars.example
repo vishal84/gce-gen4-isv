@@ -1,0 +1,5 @@
+# Example Terraform variables configuration
+# Copy this file to config.tfvars and set your GCP project ID:
+# cp config.tfvars.example config.tfvars
+
+gcp_project_id = "your-gcp-project-id"
