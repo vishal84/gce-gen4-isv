@@ -29,7 +29,7 @@ fi
 
 # 3. Format and Mount Persistent NVMe Data Disk
 DATA_DEV=""
-for dev in /dev/nvme*n1 /dev/sdb; do
+for dev in /dev/disk/by-id/google-mongodb-data /dev/nvme*n1 /dev/sdb; do
   if [ -b "$dev" ] && [ "$dev" != "/dev/nvme0n1" ] && [ "$dev" != "/dev/sda" ]; then
     DATA_DEV="$dev"
     break
@@ -92,42 +92,84 @@ done
 
 if [ "${MY_IP}" == "${SEED_IP}" ]; then
   echo "Node IP matches SEED_IP (${MY_IP}). Initializing replica set..."
-  mongosh --port 27017 --eval '
+  mongosh --port 27017 --quiet --eval '
     try {
       var status = rs.status();
       print("Replica set already initialized.");
     } catch(e) {
-      rs.initiate({
+      var res = rs.initiate({
         _id: "rs-analytics",
         members: [{ _id: 0, host: "'"${MY_IP}"':27017", priority: 2 }]
       });
-      print("Replica set initiated successfully.");
+      print("Replica set initiation result: " + JSON.stringify(res));
     }
   '
 else
-  echo "Node IP (${MY_IP}) is a worker. Waiting for Primary (${SEED_IP}) to become reachable..."
-  until mongosh --host "${SEED_IP}:27017" --eval "db.adminCommand('ping')" &>/dev/null; do
-    echo "Waiting for primary node at ${SEED_IP}:27017..."
+  echo "Node IP (${MY_IP}) is a worker. Waiting for Primary (${SEED_IP}) to complete election and become writable..."
+  until mongosh --host "${SEED_IP}:27017" --quiet --eval '
+    try {
+      var res = db.hello();
+      if (res.isWritablePrimary === true) {
+        quit(0);
+      } else {
+        quit(1);
+      }
+    } catch(e) {
+      quit(1);
+    }
+  ' &>/dev/null; do
+    echo "Waiting for primary node at ${SEED_IP}:27017 to complete election..."
     sleep 5
   done
 
-  echo "Attempting self-registration with Primary (${SEED_IP})..."
-  mongosh --host "${SEED_IP}:27017" --eval '
-    var status = rs.status();
-    var isMember = false;
-    for (var i = 0; i < status.members.length; i++) {
-      if (status.members[i].name === "'"${MY_IP}"':27017") {
-        isMember = true;
-        break;
+  echo "Primary (${SEED_IP}) is elected. Attempting self-registration..."
+
+  RETRY_COUNT=0
+  MAX_RETRIES=12
+  ADDED=0
+
+  until [ ${ADDED} -eq 1 ] || [ ${RETRY_COUNT} -ge ${MAX_RETRIES} ]; do
+    if mongosh --host "${SEED_IP}:27017" --quiet --eval '
+      try {
+        var status = rs.status();
+        if (!status.members) { quit(1); }
+        var isMember = false;
+        for (var i = 0; i < status.members.length; i++) {
+          if (status.members[i].name === "'"${MY_IP}"':27017") {
+            isMember = true;
+            break;
+          }
+        }
+        if (!isMember) {
+          var res = rs.add({ host: "'"${MY_IP}"':27017", priority: 1 });
+          if (res.ok === 1) {
+            print("Successfully added host '"${MY_IP}"':27017 to replica set.");
+            quit(0);
+          } else {
+            print("rs.add failed: " + JSON.stringify(res));
+            quit(1);
+          }
+        } else {
+          print("Host '"${MY_IP}"':27017 is already a member of the replica set.");
+          quit(0);
+        }
+      } catch(e) {
+        print("Error during registration: " + e);
+        quit(1);
       }
-    }
-    if (!isMember) {
-      rs.add({ host: "'"${MY_IP}"':27017", priority: 1 });
-      print("Successfully added host '"${MY_IP}"':27017 to replica set.");
-    } else {
-      print("Host '"${MY_IP}"':27017 is already a member of the replica set.");
-    }
-  '
+    '; then
+      ADDED=1
+    else
+      RETRY_COUNT=$((RETRY_COUNT + 1))
+      echo "Self-registration attempt ${RETRY_COUNT}/${MAX_RETRIES} failed or primary election in progress. Retrying in 5s..."
+      sleep 5
+    fi
+  done
+
+  if [ ${ADDED} -ne 1 ]; then
+    echo "ERROR: Failed to register ${MY_IP} with primary ${SEED_IP} after ${MAX_RETRIES} attempts."
+    exit 1
+  fi
 fi
 
 echo "=== MongoDB Node Initialization Complete ==="
