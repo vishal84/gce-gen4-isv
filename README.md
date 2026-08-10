@@ -166,6 +166,133 @@ make deploy-auto     # Non-interactive (-auto-approve)
 | `make output` | Display output variables (seed IP, node IPs) |
 | `make destroy` | Tear down all deployed resources |
 
+---
+
+## 🧪 Post-Deployment SSH Validation
+
+After completing deployment with `make deploy` or `make deploy-auto`, follow these SSH verification steps on each node (`mongodb-1`, `mongodb-2`, `mongodb-3`) to confirm that all infrastructure, storage, services, and cluster replication are functioning as expected.
+
+### 1. SSH into Cluster Nodes
+
+Connect to each node using `gcloud compute ssh` (replace zone as necessary):
+
+```bash
+# Seed Node (us-central1-a)
+gcloud compute ssh mongodb-1 --zone=us-central1-a
+
+# Secondary Node 1 (us-central1-b)
+gcloud compute ssh mongodb-2 --zone=us-central1-b
+
+# Secondary Node 2 (us-central1-c)
+gcloud compute ssh mongodb-3 --zone=us-central1-c
+```
+
+---
+
+### 2. Verify Startup Script Execution Log
+
+Check `/var/log/mongo-autoscale-startup.log` on each node to ensure the zero-touch automated initialization completed without errors:
+
+```bash
+sudo tail -n 30 /var/log/mongo-autoscale-startup.log
+```
+
+**Expected Result:**
+The output log should end with:
+```text
+=== MongoDB Node Initialization Complete ===
+```
+
+---
+
+### 3. Verify Dedicated Storage Disk and XFS Mount
+
+Verify that the 500 GB persistent SSD (`pd-ssd`) is correctly formatted with XFS and mounted at `/var/lib/mongodb` with tuned mount flags (`noatime,nodiratime`):
+
+```bash
+# Check filesystem mount and available space
+df -hT /var/lib/mongodb
+
+# Verify mount options
+mount | grep /var/lib/mongodb
+
+# Verify persistent /etc/fstab entry
+grep /var/lib/mongodb /etc/fstab
+```
+
+**Expected Result:**
+- `df -hT` shows `/dev/nvme*` or `/dev/sd*` mounted on `/var/lib/mongodb` with Type `xfs` and size ~500G.
+- `mount` output includes `(rw,noatime,nodiratime,attr2,inode64,logbufs=8,logbsize=32k,noquota)`.
+
+---
+
+### 4. Check MongoDB Service Status and Port Binding
+
+Confirm that the systemd `mongod` service is active/running and listening locally on port `27017`:
+
+```bash
+# Check service status
+sudo systemctl status mongod
+
+# Verify network socket binding on port 27017
+sudo ss -tulpn | grep 27017
+```
+
+**Expected Result:**
+- `mongod.service` shows `Active: active (running)`.
+- `ss` command shows `LISTEN` on `0.0.0.0:27017` or `*:27017`.
+
+---
+
+### 5. Check Replica Set Health (`rs.status()` & `db.hello()`)
+
+Run `mongosh` on any node to verify that all 3 nodes (`10.42.0.2`, `10.42.0.3`, `10.42.0.4`) have joined the `rs-analytics` replica set and are healthy:
+
+```bash
+# Check node role (PRIMARY vs SECONDARY)
+mongosh --port 27017 --quiet --eval "db.hello()"
+
+# Detailed replica set topology and member health
+mongosh --port 27017 --quiet --eval "rs.status()"
+```
+
+**Expected Result:**
+- One node will report `"isWritablePrimary": true` (state `PRIMARY`), and two nodes will report `"isSecondary": true` (state `SECONDARY`).
+- In `rs.status()`, all 3 members should have `"health": 1` and `"stateStr"` equal to `"PRIMARY"` or `"SECONDARY"`.
+
+---
+
+### 6. End-to-End Data Replication Verification
+
+Perform a write operation on the Primary node and verify read replication on Secondary nodes:
+
+#### On the Primary Node (`mongodb-1`):
+```bash
+# Insert a test document into 'testdb'
+mongosh --port 27017 --eval '
+  db.getSiblingDB("testdb").testcol.insertOne({
+    cluster: "rs-analytics",
+    status: "verified",
+    created_at: new Date()
+  })
+'
+```
+
+#### On any Secondary Node (`mongodb-2` or `mongodb-3`):
+```bash
+# Query the document using secondary read preference
+mongosh --port 27017 --eval '
+  db.getSiblingDB("testdb").testcol.find().readPref("secondary")
+'
+```
+
+#### Cleanup Test Data on the Primary Node:
+```bash
+mongosh --port 27017 --eval 'db.getSiblingDB("testdb").testcol.drop()'
+```
+
+**Expected Result:**
+The secondary node successfully queries and outputs the inserted test document, confirming full multi-zone database replication across the cluster.
 
 ---
 
