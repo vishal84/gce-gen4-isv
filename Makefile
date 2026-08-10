@@ -67,6 +67,11 @@ bootstrap:
 	fi
 	@echo "==> Initializing Terraform with remote backend..."
 	@cd $(TF_DIR) && terraform init -reconfigure
+	@echo "==> Ensuring GCS state bucket is tracked in Terraform state..."
+	@if ! cd $(TF_DIR) && terraform state list 2>/dev/null | grep -q "google_storage_bucket.terraform_state"; then \
+		echo "==> Importing existing GCS bucket '$(BUCKET_NAME)' into Terraform state..."; \
+		cd $(TF_DIR) && terraform import -var-file="$(VAR_FILE)" google_storage_bucket.terraform_state $(BUCKET_NAME); \
+	fi
 
 ## init: Initialize Terraform working directory
 init:

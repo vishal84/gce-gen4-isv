@@ -5,7 +5,7 @@
 resource "google_storage_bucket" "terraform_state" {
   project       = var.gcp_project_id
   name          = var.tfstate_bucket_name
-  location      = "US"
+  location      = "US-CENTRAL1"
   force_destroy = false
 
   storage_class = "STANDARD"
