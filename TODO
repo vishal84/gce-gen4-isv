@@ -1,0 +1,10 @@
+
+### TODO:
+
+1. add flex mig to introduce gen 4 instance types
+2. add 1TB of synthetic data to the MDB cluster running
+3. create snapshot of PD-SSD running on gen 2 instances
+4. migrate PD-SSD to Hyperdisk
+5. add node to existing cluster of gen 4 type (forcefully to simulate stockout)
+6. mount disk to gen4 type using Hyperdisk
+7. monitor performance characteristics.
