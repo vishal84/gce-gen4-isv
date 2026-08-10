@@ -8,6 +8,7 @@ locals {
     "iam.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "storage.googleapis.com",
+    "orgpolicy.googleapis.com",
   ]
 }
 
