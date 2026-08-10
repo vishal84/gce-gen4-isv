@@ -2,5 +2,10 @@
 # Copy this file to config.tfvars and set your variables:
 # cp config.tfvars.example config.tfvars
 
-gcp_project_id   = "your-gcp-project-id"
+gcp_project_id    = "your-gcp-project-id"
 github_repository = "your-github-org/your-repo"
+
+# Optional Colab Enterprise Runtime deployment
+enable_colab_runtime = false
+# colab_runtime_user  = "user@example.com"
+

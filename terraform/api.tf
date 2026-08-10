@@ -11,6 +11,8 @@ locals {
     "cloudresourcemanager.googleapis.com",
     "storage.googleapis.com",
     "orgpolicy.googleapis.com",
+    "aiplatform.googleapis.com",
+    "notebooks.googleapis.com",
   ]
 }
 

@@ -3,6 +3,12 @@ provider "google" {
   region  = "us-central1"
 }
 
+provider "google-beta" {
+  project = var.gcp_project_id
+  region  = "us-central1"
+}
+
+
 data "google_compute_image" "ubuntu" {
   family  = "ubuntu-2204-lts"
   project = "ubuntu-os-cloud"

@@ -22,3 +22,10 @@ output "codemender_service_account_email" {
   description = "Service Account email for CodeMender / GitHub Actions"
   value       = google_service_account.codemender.email
 }
+
+output "colab_runtime_id" {
+  description = "Resource ID of the deployed Colab Enterprise / Vertex AI Notebook runtime instance (if enabled)"
+  value       = var.enable_colab_runtime ? google_notebooks_runtime.mongodb_data_gen[0].id : null
+}
+
+

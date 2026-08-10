@@ -64,6 +64,7 @@ graph TD
 - ⚡ **Optimized Storage Performance**: Attaches dedicated 500 GB SSD persistent disks (`pd-ssd`) per node, formatted with XFS and tuned mount options (`noatime,nodiratime`).
 - 🔒 **Zero Public Ingress**: Database communication is strictly restricted to internal VPC subnet traffic (`10.42.0.0/24`) on port `27017`. Public IPs are utilized solely for outbound OS updates and software installation.
 - 🚀 **Zero-Touch Self-Clustering**: Pre-allocates deterministic internal IPs and uses Compute metadata to orchestrate automated primary election and dynamic secondary member registration.
+- 📓 **Colab Enterprise Data Generator**: Included Jupyter notebook (`colab/generate_mongodb_data.ipynb`) and optional Terraform Colab Enterprise runtime template (`colab.tf`) for populating synthetic e-commerce and IoT analytics datasets into the cluster over internal VPC IP address range.
 - 🛠️ **Infrastructure as Code**: Modular, declarative Terraform definitions with zero required manual post-provisioning steps.
 
 ---
@@ -76,8 +77,12 @@ graph TD
 │   └── skills/
 │       ├── gitignore-generator/ # .gitignore & cloud ignore rules generator
 │       └── readme-generator/    # README generation & audit skill
+├── colab/
+│   ├── generate_mongodb_data.ipynb # Synthetic data generation Jupyter notebook
+│   └── README.md                   # Colab notebook documentation and usage guide
 ├── terraform/
 │   ├── api.tf                  # Google Cloud APIs enablement
+│   ├── colab.tf                # Colab Enterprise runtime template & instance resources
 │   ├── main.tf                 # Core compute, network, disk, and template resources
 │   ├── storage.tf              # GCS bucket resource for Terraform remote state
 │   ├── variables.tf            # GCP project & state bucket variable definitions
@@ -304,6 +309,10 @@ The secondary node successfully queries and outputs the inserted test document, 
 | Variable | Description | Type | Default | Required |
 | :--- | :--- | :---: | :---: | :---: |
 | `gcp_project_id` | The Google Cloud Project ID where all resources will be created. | `string` | - | **Yes** |
+| `github_repository` | GitHub repository in `owner/repo` format for WIF authentication. | `string` | - | **Yes** |
+| `tfstate_bucket_name` | Name of the GCS bucket used to store Terraform remote state. | `string` | `mongo-experiments-tfstate` | No |
+| `enable_colab_runtime` | Whether to deploy Google Cloud Colab Enterprise runtime template and instance for data generation. | `bool` | `false` | No |
+| `colab_runtime_user` | User email for the Colab Enterprise runtime instance. | `string` | `""` | No |
 
 ### Outputs
 
@@ -312,6 +321,9 @@ The secondary node successfully queries and outputs the inserted test document, 
 | `mongodb_seed_ip` | Internal IP address of the seed node responsible for initializing the cluster. | `string` |
 | `mongodb_node_ips` | List of internal IP addresses for all cluster member nodes. | `list(string)` |
 | `mongodb_instance_names` | Names of all deployed Compute Engine instances (`mongodb-1`, `mongodb-2`, `mongodb-3`). | `list(string)` |
+| `colab_runtime_template_id` | Resource ID of the Colab Enterprise runtime template (if enabled). | `string` |
+| `colab_runtime_id` | Resource ID of the active Colab Enterprise runtime instance (if enabled). | `string` |
+
 
 ---
 
