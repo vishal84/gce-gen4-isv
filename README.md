@@ -7,6 +7,7 @@
 [![Ubuntu](https://img.shields.io/badge/OS-Ubuntu_22.04_LTS-E95420?style=flat-square&logo=ubuntu&logoColor=white)](https://ubuntu.com/)
 [![Region](https://img.shields.io/badge/Region-us--central1-34A853?style=flat-square&logo=google-cloud&logoColor=white)](https://cloud.google.com/about/locations)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
+[![CodeMender Wiz Evaluation](https://github.com/vishal84/gce-gen4-isv/actions/workflows/codemender-wiz.yml/badge.svg)](https://github.com/vishal84/gce-gen4-isv/actions/workflows/codemender-wiz.yml)
 
 ---
 

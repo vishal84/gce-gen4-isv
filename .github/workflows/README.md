@@ -1,5 +1,7 @@
 # 🛡️ GitHub Workflows & CodeMender by Wiz Integration
 
+[![CodeMender Wiz Evaluation](https://github.com/vishal84/gce-gen4-isv/actions/workflows/codemender-wiz.yml/badge.svg)](https://github.com/vishal84/gce-gen4-isv/actions/workflows/codemender-wiz.yml)
+
 This directory contains the GitHub Actions workflows for automated code evaluation, vulnerability remediation, and security checks using **CodeMender by Wiz**.
 
 ---
