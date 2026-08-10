@@ -124,8 +124,10 @@ refresh:
 	@echo "==> Refreshing Terraform state..."
 	@cd $(TF_DIR) && terraform refresh -var-file="$(VAR_FILE)"
 
-## destroy: Destroy all provisioned infrastructure
+## destroy: Destroy all provisioned infrastructure except the GCS state bucket
 destroy:
+	@echo "==> Preserving GCS state bucket '$(BUCKET_NAME)' (untracking from Terraform state)..."
+	-@cd $(TF_DIR) && terraform state rm google_storage_bucket.terraform_state >/dev/null 2>&1 || true
 	@echo "==> WARNING: Preparing to destroy infrastructure..."
 	@cd $(TF_DIR) && terraform destroy -var-file="$(VAR_FILE)"
 
