@@ -26,14 +26,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud via Workload Identity Federation
         uses: google-github-actions/auth@v2
         with:
-          # Supply your Service Account JSON key stored in GitHub Secrets (e.g., GCP_SA_KEY)
-          # Or configure Workload Identity Provider:
-          # workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
-          # service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          # Workload Identity Provider format:
+          # projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_NAME/providers/PROVIDER_NAME
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Install CodeMender and Google SDK Dependencies
         run: |

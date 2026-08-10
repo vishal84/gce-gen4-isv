@@ -6,6 +6,8 @@ locals {
   required_apis = [
     "compute.googleapis.com",
     "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "sts.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "storage.googleapis.com",
     "orgpolicy.googleapis.com",
