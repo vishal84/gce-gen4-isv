@@ -78,13 +78,15 @@ graph TD
 ├── terraform/
 │   ├── api.tf                  # Google Cloud APIs enablement
 │   ├── main.tf                 # Core compute, network, disk, and template resources
-│   ├── variables.tf            # GCP project input variable definition
+│   ├── storage.tf              # GCS bucket resource for Terraform remote state
+│   ├── variables.tf            # GCP project & state bucket variable definitions
 │   ├── config.tfvars           # Default variables configuration file
 │   ├── config.tfvars.example   # Example variables template file
 │   ├── outputs.tf              # Seed IP, node IPs, and instance name outputs
-│   ├── versions.tf             # Terraform and Google provider version constraints
+│   ├── versions.tf             # Terraform constraints and GCS remote backend config
 │   └── scripts/
 │       └── startup-script.sh   # Automated NVMe tuning, disk mounting & cluster initialization
+├── Makefile                    # Makefile for easy dry-run, deployment, and management
 ├── gcp-config.yaml             # Declarative GCP project & environment configuration
 ├── .gcloudignore               # Google Cloud deployment file ignore rules
 ├── .gitignore                  # Source control ignore rules
@@ -99,7 +101,7 @@ Before deploying the infrastructure, verify you have the following prerequisites
 
 - [Terraform CLI](https://developer.hashicorp.com/terraform/downloads) `>= 1.5.0`
 - [Google Cloud SDK (`gcloud`)](https://cloud.google.com/sdk/docs/install)
-- Active GCP Project with billing enabled and Compute Engine API access (`compute.googleapis.com`)
+- Active GCP Project (`mongo-experiments`) with billing enabled and required APIs enabled
 
 ```bash
 # Authenticate Google Cloud CLI
@@ -107,51 +109,63 @@ gcloud auth login
 gcloud auth application-default login
 
 # Configure target project
-gcloud config set project <YOUR_GCP_PROJECT_ID>
+gcloud config set project mongo-experiments
 ```
 
 ---
 
-## 🚀 Quickstart & Deployment
+## 🚀 Quickstart & Deployment with Makefile
 
-### 1. Clone the Repository & Navigate to Terraform Directory
+The included `Makefile` simplifies all deployment and operational workflows.
 
-```bash
-git clone https://github.com/vishal84/gce-gen4-isv.git
-cd gce-gen4-isv/terraform
-```
+### 1. Bootstrap State Bucket & Initialize Remote Backend
 
-### 2. Configure Your Project Variable
-
-Update `config.tfvars` or pass `-var="gcp_project_id=<YOUR_PROJECT_ID>"`:
-
-```hcl
-gcp_project_id = "your-gcp-project-id"
-```
-
-### 3. Initialize & Validate
+Ensure the GCS remote state bucket (`mongo-experiments-tfstate`) exists and initialize the Terraform GCS backend under prefix `gce-gen4-isv`:
 
 ```bash
-# Initialize Google provider plugins
-terraform init
-
-# Validate configuration syntax
-terraform validate
+make bootstrap
 ```
 
-### 4. Review Execution Plan
+### 2. Validate Code Syntax & Formatting
 
 ```bash
-terraform plan -var-file="config.tfvars"
+make validate
+make fmt
 ```
 
-### 5. Apply Deployment
+### 3. Dry-Run Execution Plan
+
+Review changes safely before applying them:
 
 ```bash
-terraform apply -var-file="config.tfvars" -auto-approve
+make dry-run   # Or: make plan
 ```
 
-Once the Terraform execution completes, the instances will boot up and automatically execute their startup initialization in parallel.
+### 4. Deploy Infrastructure
+
+Execute the deployment:
+
+```bash
+make deploy          # Interactive confirmation
+# OR
+make deploy-auto     # Non-interactive (-auto-approve)
+```
+
+### 5. Makefile Commands Summary
+
+| Target | Description |
+| :--- | :--- |
+| `make help` | Display list of all available Makefile commands |
+| `make bootstrap` | Ensure GCS bucket `gs://mongo-experiments-tfstate` exists and reconfigure backend |
+| `make init` | Initialize Terraform working directory |
+| `make dry-run` / `make plan` | Execute Terraform dry-run execution plan |
+| `make deploy` / `make apply` | Apply Terraform deployment interactively |
+| `make deploy-auto` | Apply Terraform deployment with `-auto-approve` |
+| `make validate` | Validate Terraform syntax and configuration logic |
+| `make fmt` | Format all Terraform HCL files |
+| `make output` | Display output variables (seed IP, node IPs) |
+| `make destroy` | Tear down all deployed resources |
+
 
 ---
 

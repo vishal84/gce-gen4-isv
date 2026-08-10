@@ -21,6 +21,7 @@ services:
     - "compute.googleapis.com"
     - "iam.googleapis.com"
     - "cloudresourcemanager.googleapis.com"
+    - "storage.googleapis.com"
 
 networking:
   network_name: "mongodb-network"

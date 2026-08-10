@@ -7,5 +7,10 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  backend "gcs" {
+    bucket = "mongo-experiments-tfstate"
+    prefix = "gce-gen4-isv"
+  }
 }
 

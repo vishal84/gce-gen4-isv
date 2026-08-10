@@ -1,1 +1,1 @@
-gcp_project_id="mongo-experiments"
+gcp_project_id = "mongo-experiments"
