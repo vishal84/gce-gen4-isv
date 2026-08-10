@@ -13,3 +13,12 @@ output "mongodb_instance_names" {
   value       = google_compute_instance_from_template.mongodb[*].name
 }
 
+output "wif_provider_name" {
+  description = "Workload Identity Provider resource name for GitHub Actions"
+  value       = google_iam_workload_identity_pool_provider.github_provider.name
+}
+
+output "codemender_service_account_email" {
+  description = "Service Account email for CodeMender / GitHub Actions"
+  value       = google_service_account.codemender.email
+}

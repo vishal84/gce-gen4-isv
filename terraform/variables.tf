@@ -8,3 +8,8 @@ variable "tfstate_bucket_name" {
   type        = string
   default     = "mongo-experiments-tfstate"
 }
+
+variable "github_repository" {
+  description = "GitHub repository in 'owner/repo' format for Workload Identity Federation"
+  type        = string
+}
