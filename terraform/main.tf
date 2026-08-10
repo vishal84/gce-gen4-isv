@@ -48,6 +48,21 @@ resource "google_compute_firewall" "mongodb_replication" {
   }
 }
 
+resource "google_compute_firewall" "iap_ssh" {
+  project       = local.project_id
+  name          = "mongodb-allow-iap-ssh"
+  network       = google_compute_network.mongodb.name
+  direction     = "INGRESS"
+  source_ranges = ["35.235.240.0/20"]
+  target_tags   = ["mongodb"]
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+}
+
+
 resource "google_compute_address" "mongodb" {
   count = length(local.node_zones)
 
