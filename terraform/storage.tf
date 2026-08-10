@@ -27,4 +27,8 @@ resource "google_storage_bucket" "terraform_state" {
   }
 
   depends_on = [google_project_service.required_apis]
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
