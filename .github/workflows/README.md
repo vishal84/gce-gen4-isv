@@ -46,61 +46,42 @@ flowchart TD
 
 ---
 
-## 🔑 Setting Up Keyless Workload Identity Federation (WIF)
+## 🏗️ Provisioning Workload Identity Federation via Terraform
 
-Workload Identity Federation removes the need to export long-lived JSON service account keys. GitHub Actions requests short-lived OIDC tokens directly from Google Cloud.
+All required GCP infrastructure for Workload Identity Federation (WIF) is fully managed via Terraform in the [terraform/](file:///Users/vishalapatel/Documents/GitHub/gce-gen4-isv/terraform/) folder:
 
-### Step 1: Run setup commands in Google Cloud Shell / Terminal
+- **[terraform/wif.tf](file:///Users/vishalapatel/Documents/GitHub/gce-gen4-isv/terraform/wif.tf)**: Provisions `google_iam_workload_identity_pool`, `google_iam_workload_identity_pool_provider`, `google_service_account`, and IAM role bindings.
+- **[terraform/api.tf](file:///Users/vishalapatel/Documents/GitHub/gce-gen4-isv/terraform/api.tf)**: Enables required APIs (`sts.googleapis.com`, `iamcredentials.googleapis.com`).
+- **[terraform/config.tfvars](file:///Users/vishalapatel/Documents/GitHub/gce-gen4-isv/terraform/config.tfvars)**: Configures project ID and repository (`github_repository = "vishal84/gce-gen4-isv"`).
+
+### Deployment Commands
+
+Deploy the infrastructure using the repository Makefile:
 
 ```bash
-# 1. Define Variables
-export PROJECT_ID="your-gcp-project-id"
-export PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
-export POOL_NAME="github-pool"
-export PROVIDER_NAME="github-provider"
-export SERVICE_ACCOUNT_NAME="codemender-sa"
-export GITHUB_REPO="your-org/your-repo" # e.g. vishal84/gce-gen4-isv
+# 1. Deploy Terraform infrastructure
+make deploy
+# OR for automated execution:
+make deploy-auto
 
-# 2. Enable Required GCP APIs
-gcloud services enable iamcredentials.googleapis.com cloudresourcemanager.googleapis.com --project=$PROJECT_ID
+# 2. Retrieve deployed WIF outputs
+make output
+```
 
-# 3. Create Service Account for CodeMender
-gcloud iam service-accounts create $SERVICE_ACCOUNT_NAME \
-  --description="Service Account for GitHub Actions CodeMender" \
-  --display-name="GitHub Actions CodeMender SA" \
-  --project=$PROJECT_ID
-
-# 4. Create Workload Identity Pool
-gcloud iam workload-identity-pools create $POOL_NAME \
-  --location="global" \
-  --description="Workload Identity Pool for GitHub Actions" \
-  --display-name="GitHub Actions Pool" \
-  --project=$PROJECT_ID
-
-# 5. Create OIDC Provider for GitHub Actions
-gcloud iam workload-identity-pools providers create-oidc $PROVIDER_NAME \
-  --location="global" \
-  --workload-identity-pool=$POOL_NAME \
-  --issuer-uri="https://token.actions.githubusercontent.com" \
-  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.actor=assertion.actor" \
-  --attribute-condition="assertion.repository == '$GITHUB_REPO'" \
-  --project=$PROJECT_ID
-
-# 6. Bind IAM Role to allow GitHub repository impersonation
-gcloud iam service-accounts add-iam-policy-binding "$SERVICE_ACCOUNT_NAME@$PROJECT_ID.iam.gserviceaccount.com" \
-  --role="roles/iam.workloadIdentityUser" \
-  --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/$POOL_NAME/attribute.repository/$GITHUB_REPO" \
-  --project=$PROJECT_ID
+The output will display the exact values to populate in GitHub Secrets:
+```text
+codemender_service_account_email = "codemender-sa@mongo-experiments.iam.gserviceaccount.com"
+wif_provider_name                = "projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
 ```
 
 ---
 
 ## 🔐 Required GitHub Secrets Configuration
 
-Add these non-secret identifiers in **GitHub Repository Settings ➔ Secrets and variables ➔ Actions**:
+Add these identifiers in **GitHub Repository Settings ➔ Secrets and variables ➔ Actions**:
 
-1. `GCP_WORKLOAD_IDENTITY_PROVIDER`: `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider`
-2. `GCP_SERVICE_ACCOUNT`: `codemender-sa@PROJECT_ID.iam.gserviceaccount.com`
+1. `GCP_WORKLOAD_IDENTITY_PROVIDER`: `wif_provider_name` from Terraform output.
+2. `GCP_SERVICE_ACCOUNT`: `codemender_service_account_email` from Terraform output.
 3. `GEMINI_API_KEY`: API Key for Gemini model access.
 4. `WIZ_API_CLIENT_ID`: Wiz Tenant Client ID.
 5. `WIZ_API_CLIENT_SECRET`: Wiz Tenant Client Secret.

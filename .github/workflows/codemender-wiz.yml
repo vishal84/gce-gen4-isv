@@ -1,13 +1,21 @@
 name: CodeMender Wiz Evaluation
 
 on:
+  # --- PRODUCTION TRIGGER: PR Merge Only ---
   pull_request:
     types: [closed]
 
+  # --- TESTING TRIGGER: Uncomment below to run on every push/commit or manual trigger ---
+  # push:
+  #   branches: ['**']
+  # workflow_dispatch:
+
 jobs:
   codemender-evaluation:
-    # Run ONLY when the pull request was merged
+    # --- PRODUCTION FILTER: Run ONLY when PR was merged ---
     if: github.event.pull_request.merged == true
+    # --- TESTING FILTER: Uncomment line below for testing on push/commit ---
+    # if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     permissions:
