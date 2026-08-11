@@ -21,6 +21,8 @@ Each node is provisioned on dedicated `n2-standard-8` Compute Engine virtual mac
 
 ## 🏗️ Architecture
 
+![GCP Architecture Diagram](assets/gcp_architecture_diagram.png)
+
 ```mermaid
 graph TD
     subgraph VPC [Custom VPC Network: 10.42.0.0/24]
