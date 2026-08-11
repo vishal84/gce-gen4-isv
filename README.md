@@ -23,41 +23,6 @@ Each node is provisioned on dedicated `n2-standard-8` Compute Engine virtual mac
 
 ![GCP Architecture Diagram](assets/gcp_architecture_diagram.png)
 
-```mermaid
-graph TD
-    subgraph VPC [Custom VPC Network: 10.42.0.0/24]
-        subgraph ZoneA [Zone: us-central1-a]
-            VM1["Primary Node (Seed)<br/>• n2-standard-8 (8 vCPU, 32 GB)<br/>• Static Internal IP: 10.42.0.2"]
-            Disk1[("1 TB pd-ssd<br/>XFS /var/lib/mongodb")]
-            VM1 --- Disk1
-        end
-
-        subgraph ZoneB [Zone: us-central1-b]
-            VM2["Secondary Node 1<br/>• n2-standard-8 (8 vCPU, 32 GB)<br/>• Static Internal IP: 10.42.0.3"]
-            Disk2[("1 TB pd-ssd<br/>XFS /var/lib/mongodb")]
-            VM2 --- Disk2
-        end
-
-        subgraph ZoneC [Zone: us-central1-c]
-            VM3["Secondary Node 2<br/>• n2-standard-8 (8 vCPU, 32 GB)<br/>• Static Internal IP: 10.42.0.4"]
-            Disk3[("1 TB pd-ssd<br/>XFS /var/lib/mongodb")]
-            VM3 --- Disk3
-        end
-
-        VM1 <===>|Port 27017 Replication Mesh| VM2
-        VM1 <===>|Port 27017 Replication Mesh| VM3
-        VM2 <===>|Port 27017 Replication Mesh| VM3
-    end
-
-    subgraph External [Outbound Egress Only]
-        Internet([Package Repositories & OS Updates])
-    end
-
-    VM1 -.->|Outbound HTTPS| Internet
-    VM2 -.->|Outbound HTTPS| Internet
-    VM3 -.->|Outbound HTTPS| Internet
-```
-
 ---
 
 ## ✨ Key Features
