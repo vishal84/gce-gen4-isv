@@ -39,6 +39,7 @@ help:
 	@echo ""
 	@echo "Deployment & Execution Targets:"
 	@echo "  bootstrap    - Ensure GCS bucket '$(BUCKET_NAME)' exists and initialize backend"
+	@echo "  import       - Import pre-existing GCP resources into Terraform state"
 	@echo "  init         - Initialize Terraform working directory and provider plugins"
 	@echo "  dry-run      - Perform dry-run execution plan (terraform plan)"
 	@echo "  plan         - Alias for dry-run"
@@ -70,8 +71,18 @@ bootstrap:
 	@echo "==> Ensuring GCS state bucket is tracked in Terraform state..."
 	@if ! cd $(TF_DIR) && terraform state list 2>/dev/null | grep -q "google_storage_bucket.terraform_state"; then \
 		echo "==> Importing existing GCS bucket '$(BUCKET_NAME)' into Terraform state..."; \
-		cd $(TF_DIR) && terraform import -var-file="$(VAR_FILE)" google_storage_bucket.terraform_state $(BUCKET_NAME); \
+		cd $(TF_DIR) && terraform import -var-file="$(VAR_FILE)" google_storage_bucket.terraform_state $(BUCKET_NAME) || true; \
 	fi
+
+## import: Import pre-existing GCP resources into Terraform state
+import: init
+	@echo "==> Importing existing GCS state bucket '$(BUCKET_NAME)' into Terraform state..."
+	-cd $(TF_DIR) && terraform import -var-file="$(VAR_FILE)" google_storage_bucket.terraform_state $(BUCKET_NAME)
+	@echo "==> Importing existing Workload Identity Pool into Terraform state..."
+	-cd $(TF_DIR) && terraform import -var-file="$(VAR_FILE)" google_iam_workload_identity_pool.github_pool projects/$(PROJECT_ID)/locations/global/workloadIdentityPools/github-pool
+	-cd $(TF_DIR) && terraform import -var-file="$(VAR_FILE)" google_service_account.codemender projects/$(PROJECT_ID)/serviceAccounts/codemender-sa@$(PROJECT_ID).iam.gserviceaccount.com
+	-cd $(TF_DIR) && terraform import -var-file="$(VAR_FILE)" google_iam_workload_identity_pool_provider.github_provider projects/$(PROJECT_ID)/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+
 
 ## init: Initialize Terraform working directory
 init:
