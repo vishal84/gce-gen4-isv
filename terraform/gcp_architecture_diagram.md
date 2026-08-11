@@ -6,7 +6,7 @@ This document details the Google Cloud Platform (GCP) architecture and deploymen
 
 ## 1. Visual GCP Architecture Diagram
 
-![GCP Architecture Diagram](/Users/vishalapatel/.gemini/antigravity/brain/a44c619e-4166-4b47-93bc-5976cb3b30e0/gcp_architecture_diagram_1786488075085.png)
+![GCP Architecture Diagram](../img/gcp_architecture_diagram.png)
 
 ---
 
