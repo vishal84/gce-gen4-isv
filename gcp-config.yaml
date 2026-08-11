@@ -40,7 +40,7 @@ compute:
     size_gb: 50
   data_disk:
     type: "pd-ssd"
-    size_gb: 500
+    size_gb: 1000
     mount_path: "/var/lib/mongodb"
     filesystem: "xfs"
 

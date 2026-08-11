@@ -15,7 +15,7 @@
 
 This repository provides automated Terraform configurations to deploy an enterprise-ready, resilient 3-node database cluster across multiple availability zones in Google Cloud (`us-central1-a`, `us-central1-b`, and `us-central1-c`).
 
-Each node is provisioned on dedicated `n2-standard-8` Compute Engine virtual machines backed by high-performance 500 GB persistent SSDs (`pd-ssd`). The infrastructure includes custom VPC networking, strict internal firewall isolation, automated disk formatting with XFS, and automated zero-touch cluster member discovery and replica set initialization upon first boot.
+Each node is provisioned on dedicated `n2-standard-8` Compute Engine virtual machines backed by high-performance 1 TB persistent SSDs (`pd-ssd`). The infrastructure includes custom VPC networking, strict internal firewall isolation, automated disk formatting with XFS, and automated zero-touch cluster member discovery and replica set initialization upon first boot.
 
 ---
 
@@ -26,19 +26,19 @@ graph TD
     subgraph VPC [Custom VPC Network: 10.42.0.0/24]
         subgraph ZoneA [Zone: us-central1-a]
             VM1["Primary Node (Seed)<br/>• n2-standard-8 (8 vCPU, 32 GB)<br/>• Static Internal IP: 10.42.0.2"]
-            Disk1[("500 GB pd-ssd<br/>XFS /var/lib/mongodb")]
+            Disk1[("1 TB pd-ssd<br/>XFS /var/lib/mongodb")]
             VM1 --- Disk1
         end
 
         subgraph ZoneB [Zone: us-central1-b]
             VM2["Secondary Node 1<br/>• n2-standard-8 (8 vCPU, 32 GB)<br/>• Static Internal IP: 10.42.0.3"]
-            Disk2[("500 GB pd-ssd<br/>XFS /var/lib/mongodb")]
+            Disk2[("1 TB pd-ssd<br/>XFS /var/lib/mongodb")]
             VM2 --- Disk2
         end
 
         subgraph ZoneC [Zone: us-central1-c]
             VM3["Secondary Node 2<br/>• n2-standard-8 (8 vCPU, 32 GB)<br/>• Static Internal IP: 10.42.0.4"]
-            Disk3[("500 GB pd-ssd<br/>XFS /var/lib/mongodb")]
+            Disk3[("1 TB pd-ssd<br/>XFS /var/lib/mongodb")]
             VM3 --- Disk3
         end
 
@@ -61,7 +61,7 @@ graph TD
 ## ✨ Key Features
 
 - 🌐 **Multi-Zone Fault Tolerance**: Distributes instances evenly across three independent availability zones to withstand single-zone outages.
-- ⚡ **Optimized Storage Performance**: Attaches dedicated 500 GB SSD persistent disks (`pd-ssd`) per node, formatted with XFS and tuned mount options (`noatime,nodiratime`).
+- ⚡ **Optimized Storage Performance**: Attaches dedicated 1 TB SSD persistent disks (`pd-ssd`) per node, formatted with XFS and tuned mount options (`noatime,nodiratime`).
 - 🔒 **Zero Public Ingress**: Database communication is strictly restricted to internal VPC subnet traffic (`10.42.0.0/24`) on port `27017`. Public IPs are utilized solely for outbound OS updates and software installation.
 - 🚀 **Zero-Touch Self-Clustering**: Pre-allocates deterministic internal IPs and uses Compute metadata to orchestrate automated primary election and dynamic secondary member registration.
 - 📓 **Colab Enterprise Data Generator**: Included Jupyter notebook (`colab/generate_mongodb_data.ipynb`) and optional Terraform Colab Enterprise runtime template (`colab.tf`) for populating synthetic e-commerce and IoT analytics datasets into the cluster over internal VPC IP address range.
@@ -213,7 +213,7 @@ The output log should end with:
 
 ### 3. Verify Dedicated Storage Disk and XFS Mount
 
-Verify that the 500 GB persistent SSD (`pd-ssd`) is correctly formatted with XFS and mounted at `/var/lib/mongodb` with tuned mount flags (`noatime,nodiratime`):
+Verify that the 1 TB persistent SSD (`pd-ssd`) is correctly formatted with XFS and mounted at `/var/lib/mongodb` with tuned mount flags (`noatime,nodiratime`):
 
 ```bash
 # Check filesystem mount and available space
@@ -227,7 +227,7 @@ grep /var/lib/mongodb /etc/fstab
 ```
 
 **Expected Result:**
-- `df -hT` shows `/dev/nvme*` or `/dev/sd*` mounted on `/var/lib/mongodb` with Type `xfs` and size ~500G.
+- `df -hT` shows `/dev/nvme*` or `/dev/sd*` mounted on `/var/lib/mongodb` with Type `xfs` and size ~1000G.
 - `mount` output includes `(rw,noatime,nodiratime,attr2,inode64,logbufs=8,logbsize=32k,noquota)`.
 
 ---
@@ -338,12 +338,12 @@ Here is a detailed breakdown of the components provisioned during deployment:
 
 ### 2. Compute and Storage Allocation
 - **Instance Template**: Defines baseline `n2-standard-8` machines (8 vCPUs, 32 GB memory) running Ubuntu 22.04 LTS on 50 GB `pd-balanced` boot drives.
-- **Dedicated Data Volumes**: Creates and attaches independent 500 GB SSD persistent disks (`pd-ssd`) labeled `mongodb-data` to each instance across `us-central1-a`, `us-central1-b`, and `us-central1-c`.
+- **Dedicated Data Volumes**: Creates and attaches independent 1 TB SSD persistent disks (`pd-ssd`) labeled `mongodb-data` to each instance across `us-central1-a`, `us-central1-b`, and `us-central1-c`.
 
 ### 3. Automated OS Tuning, Installation, and Self-Clustering
 Upon instance creation, [`terraform/scripts/startup-script.sh`](terraform/scripts/startup-script.sh) runs automatically:
 1. **Kernel Driver Optimization**: Ensures NVMe and gVNIC kernel drivers are loaded into `initramfs`.
-2. **Filesystem Provisioning**: Formats the attached 500 GB SSD volume with `mkfs.xfs` (CRC enabled, 512-byte inodes), mounts it to `/var/lib/mongodb`, and appends UUID-based entries into `/etc/fstab` with `noatime,nodiratime` flags.
+2. **Filesystem Provisioning**: Formats the attached 1 TB SSD volume with `mkfs.xfs` (CRC enabled, 512-byte inodes), mounts it to `/var/lib/mongodb`, and appends UUID-based entries into `/etc/fstab` with `noatime,nodiratime` flags.
 3. **Package Installation**: Fetches and installs official MongoDB 7.0 Community Edition packages via verified MongoDB APT repositories.
 4. **Daemon Configuration**: Configures `/etc/mongod.conf` with `wiredTiger` storage engine pointing to `/var/lib/mongodb`, binds to `0.0.0.0:27017`, and assigns replica set name `rs-analytics`.
 5. **Replica Set Formation**:

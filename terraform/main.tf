@@ -86,7 +86,7 @@ resource "google_compute_disk" "mongodb_data" {
   name    = "mongodb-${count.index + 1}-data"
   zone    = local.node_zones[count.index]
   type    = "pd-ssd"
-  size    = 500
+  size    = 1000
 }
 
 resource "google_compute_instance_template" "mongodb" {
