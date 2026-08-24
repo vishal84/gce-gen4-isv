@@ -19,6 +19,7 @@
 # CLI execution plan binary and cache files
 *.tfplan
 *.tfplan.binary
+tfplan
 
 # Terraform override files (local development overrides)
 override.tf
