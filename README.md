@@ -132,6 +132,7 @@ make deploy-auto     # Non-interactive (-auto-approve)
 | `make bootstrap` | Ensure GCS bucket `gs://mongo-experiments-tfstate` exists and reconfigure backend |
 | `make init` | Initialize Terraform working directory |
 | `make dry-run` / `make plan` | Execute Terraform dry-run execution plan |
+| `make diagram` / `make architecture` | Generate GCP architecture diagram based on Terraform plan (`tfplan.json`) |
 | `make deploy` / `make apply` | Apply Terraform deployment interactively |
 | `make deploy-auto` | Apply Terraform deployment with `-auto-approve` |
 | `make validate` | Validate Terraform syntax and configuration logic |

@@ -26,7 +26,7 @@ PROJECT_ID  ?= mongo-experiments
 BUCKET_NAME ?= mongo-experiments-tfstate
 REGION      ?= us-central1
 
-.PHONY: all help init bootstrap plan dry-run deploy apply deploy-auto validate fmt fmt-check output refresh destroy clean
+.PHONY: all help init bootstrap plan dry-run deploy apply deploy-auto validate fmt fmt-check output refresh destroy clean diagram architecture arch-diagram
 
 all: help
 
@@ -49,6 +49,8 @@ help:
 	@echo "  destroy      - Destroy all provisioned cloud infrastructure"
 	@echo ""
 	@echo "Maintenance & Quality Targets:"
+	@echo "  diagram      - Generate GCP architecture diagram based on Terraform plan"
+	@echo "  architecture - Alias for diagram"
 	@echo "  validate     - Check Terraform configuration syntax and semantics"
 	@echo "  fmt          - Automatically format all HCL files"
 	@echo "  fmt-check    - Verify HCL formatting without modifying files"
@@ -96,6 +98,28 @@ dry-run: init
 
 ## plan: Alias for dry-run
 plan: dry-run
+
+## diagram: Generate GCP architecture diagram based on Terraform execution plan
+diagram: init
+	@echo "==> Generating Terraform execution plan for architecture visualization..."
+	@cd $(TF_DIR) && terraform plan -var-file="$(VAR_FILE)" -out=tfplan
+	@echo "==> Exporting Terraform plan to JSON (tfplan.json)..."
+	@cd $(TF_DIR) && terraform show -json tfplan > tfplan.json
+	@echo "==> Invoking Antigravity architecture diagram generator skill..."
+	@if command -v agy >/dev/null 2>&1; then \
+		agy -p "Use skill gcp-architecture-diagram-generator to update the GCP architecture diagram and README based on terraform/tfplan.json"; \
+	elif [ -f ~/.local/bin/agy ]; then \
+		~/.local/bin/agy -p "Use skill gcp-architecture-diagram-generator to update the GCP architecture diagram and README based on terraform/tfplan.json"; \
+	else \
+		echo "==> Terraform plan saved to $(TF_DIR)/tfplan.json."; \
+		echo "==> Trigger 'gcp-architecture-diagram-generator' skill in your Antigravity agent to update diagram."; \
+	fi
+
+## architecture: Alias for diagram
+architecture: diagram
+
+## arch-diagram: Alias for diagram
+arch-diagram: diagram
 
 ## deploy: Apply Terraform configuration with interactive confirmation
 deploy: init
